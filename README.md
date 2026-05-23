@@ -34,28 +34,61 @@ import satmodel
 
 ## 安装方式
 
-开发安装：
+要求：
+
+- Python 3.10 或更高版本。
+- 如果直接从 GitHub 安装或克隆，需要先安装 Git。
+
+### 在其他电脑上直接安装
+
+如果只是想把库安装到 Python 环境中使用，可以直接从 GitHub 安装：
 
 ```bash
-pip install -e .
+python -m pip install git+https://github.com/hao-hi/satellite-attitude-control-model.git
 ```
+
+安装后验证：
+
+```bash
+python -c "import satmodel; print(satmodel.__version__)"
+```
+
+### 克隆项目后开发安装
+
+如果想运行示例、修改代码或运行测试，推荐先克隆仓库，再进入项目根目录安装：
+
+```bash
+git clone https://github.com/hao-hi/satellite-attitude-control-model.git
+cd satellite-attitude-control-model
+python -m pip install -e .
+```
+
+注意：`python -m pip install -e .` 必须在包含 `pyproject.toml` 的项目根目录执行，不能在任意下载目录、微信文件目录或压缩包内部子目录执行。
+
+### 可选安装项
 
 包含测试、构建和发布检查工具：
 
 ```bash
-pip install -e ".[dev]"
+python -m pip install -e ".[dev]"
 ```
 
 包含绘图能力：
 
 ```bash
-pip install -e ".[plot]"
+python -m pip install -e ".[plot]"
+```
+
+开发、测试和绘图一起安装：
+
+```bash
+python -m pip install -e ".[dev,plot]"
 ```
 
 包含可选地球环境模型和 TLE 适配器：
 
 ```bash
-pip install -e ".[earth,tle]"
+python -m pip install -e ".[earth,tle]"
 ```
 
 说明：

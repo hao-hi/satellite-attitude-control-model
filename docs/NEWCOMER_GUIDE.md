@@ -96,23 +96,39 @@
 
 ## 5. 如何使用
 
-在项目根目录执行：
+### 5.1 在其他电脑上直接安装
+
+如果只是想把库安装到 Python 环境中使用，可以直接从 GitHub 安装：
 
 ```powershell
-cd "E:\Desktop\卫星姿控仿真 (5.22)"
+python -m pip install git+https://github.com/hao-hi/satellite-attitude-control-model.git
 ```
 
-开发安装：
+安装后验证：
 
 ```powershell
-pip install -e .
+python -c "import satmodel; print(satmodel.__version__)"
+```
+
+### 5.2 克隆项目后开发安装
+
+如果想运行示例、修改代码或运行测试，推荐先克隆仓库，再进入项目根目录安装：
+
+```powershell
+git clone https://github.com/hao-hi/satellite-attitude-control-model.git
+cd satellite-attitude-control-model
+python -m pip install -e .
 ```
 
 如果需要测试、构建和绘图能力：
 
 ```powershell
-pip install -e ".[dev,plot]"
+python -m pip install -e ".[dev,plot]"
 ```
+
+注意：`python -m pip install -e .` 必须在包含 `pyproject.toml` 的项目根目录执行，不能在任意下载目录、微信文件目录或压缩包内部子目录执行。
+
+### 5.3 运行示例
 
 运行最简单开环例子：
 
