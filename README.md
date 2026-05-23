@@ -1,47 +1,41 @@
 # satmodel
 
-`satmodel` 是一个面向卫星姿态控制研究的轻量 Python 库。它把刚体姿态动力学、轨道环境、扰动力矩、执行机构、传感器、估计器、控制器和仿真实验拆成可组合模块，适合做 CubeSat/小卫星 ADCS 的第一版建模、控制律验证和论文式数值实验。
+**satmodel** 是一个面向小卫星姿态控制研究的轻量 Python 仿真库。项目名称来自 **satellite model**，可以理解为“卫星姿控仿真模型库”。
 
-当前项目已经整理为标准 `src/` layout Python 包。安装后可以直接：
+它把卫星姿态仿真拆成可组合模块：
 
-```python
-import satmodel
+```text
+轨道环境 -> 扰动力矩 -> 传感器 -> 姿态估计 -> 控制器 -> 执行机构 -> 刚体动力学
 ```
 
-也可以从子模块按需装配更细的物理模型。
+项目适合用于 CubeSat/小卫星 ADCS 的第一版建模、控制律验证、反作用轮仿真、姿态估计、惯量辨识和论文式数值实验。
 
-初次接触项目时，建议先阅读 [新手导览](docs/NEWCOMER_GUIDE.md)。它按“项目是什么、源码文件作用、示例脚本作用、如何运行”的顺序介绍仓库。
+## 项目特点
 
-## 当前能力
+- 标量在前四元数姿态表示。
+- 固定步长 RK4 刚体姿态传播。
+- 圆轨道、Kepler 轨道、星历轨道和可选 TLE/SGP4 轨道源。
+- 简化 LEO 环境：地磁场、大气密度、太阳方向和地影。
+- 可选 IGRF 地磁场和 NRLMSIS 大气模型适配器。
+- 重力梯度、残余磁、气动、太阳光压扰动力矩。
+- 理想体轴力矩执行器。
+- 三轮正交和四轮金字塔反作用轮执行器。
+- 反作用轮力矩/速度限幅、失效降级和 null-space 动量管理。
+- 简化姿态传感器和陀螺模型。
+- MEKF 姿态估计。
+- 可选对角惯量 RLS 辨识。
+- PD 和 LADRC 姿态控制器。
+- 网格搜索、随机搜索、Nelder-Mead、模拟退火和 PSO 调参工具。
+- 可复现的反作用轮阵列研究实验。
 
-- 标量在前四元数刚体姿态动力学
-- 固定步长 RK4 姿态传播器
-- 圆轨道、Kepler 轨道、星历表/callable 轨道源
-- 可选 TLE/SGP4 轨道适配器
-- 组合式 LEO 环境：地磁场、大气密度、太阳方向、地影
-- 中心偶极地磁和指数大气默认模型
-- 可选 IGRF 和 NRLMSIS 高保真环境适配入口
-- 重力梯度、残余磁、气动、太阳光压扰动力矩
-- 理想体轴力矩执行器
-- 三轮正交与四轮金字塔反作用轮状态效应器
-- 多轮反作用轮有界分配、失效降级和 null-space 动量管理
-- 简化姿态传感器和陀螺模型
-- MEKF 姿态估计
-- 可选对角惯量 RLS 辨识
-- PD 和 LADRC 姿态控制器
-- 网格、随机、Nelder-Mead、模拟退火和 PSO 调参工具
-- 可复现反作用轮阵列论文式仿真实验
-
-## 安装方式
+## 快速安装
 
 要求：
 
 - Python 3.10 或更高版本。
-- 如果直接从 GitHub 安装或克隆，需要先安装 Git。
+- 如果从 GitHub 克隆或直接安装，需要本机已安装 Git。
 
-### 在其他电脑上直接安装
-
-如果只是想把库安装到 Python 环境中使用，可以直接从 GitHub 安装：
+只想在其他电脑上安装并调用库：
 
 ```bash
 python -m pip install git+https://github.com/hao-hi/satellite-attitude-control-model.git
@@ -53,9 +47,7 @@ python -m pip install git+https://github.com/hao-hi/satellite-attitude-control-m
 python -c "import satmodel; print(satmodel.__version__)"
 ```
 
-### 克隆项目后开发安装
-
-如果想运行示例、修改代码或运行测试，推荐先克隆仓库，再进入项目根目录安装：
+如果要运行示例、修改代码或运行测试，推荐克隆后开发安装：
 
 ```bash
 git clone https://github.com/hao-hi/satellite-attitude-control-model.git
@@ -63,202 +55,66 @@ cd satellite-attitude-control-model
 python -m pip install -e .
 ```
 
-注意：`python -m pip install -e .` 必须在包含 `pyproject.toml` 的项目根目录执行，不能在任意下载目录、微信文件目录或压缩包内部子目录执行。
+注意：`python -m pip install -e .` 必须在包含 `pyproject.toml` 的项目根目录执行。不要在微信文件夹、压缩包内部子目录或其他任意目录执行，否则 pip 会提示找不到 `setup.py` 或 `pyproject.toml`。
 
-### 可选安装项
+## 可选依赖
 
-包含测试、构建和发布检查工具：
+开发、测试和构建工具：
 
 ```bash
 python -m pip install -e ".[dev]"
 ```
 
-包含绘图能力：
+绘图能力：
 
 ```bash
 python -m pip install -e ".[plot]"
 ```
 
-开发、测试和绘图一起安装：
-
-```bash
-python -m pip install -e ".[dev,plot]"
-```
-
-包含可选地球环境模型和 TLE 适配器：
+可选地球环境模型和 TLE/SGP4 适配器：
 
 ```bash
 python -m pip install -e ".[earth,tle]"
 ```
 
+常用开发组合：
+
+```bash
+python -m pip install -e ".[dev,plot,earth,tle]"
+```
+
 说明：
 
-- 默认安装只依赖 `numpy` 和 `matplotlib`，保持轻量。
-- `earth` 额外安装 `ppigrf` 和 `pymsis`，只在实例化 IGRF/NRLMSIS 适配器时需要。
-- `tle` 额外安装 `sgp4`，只在使用 `TLEOrbitProvider` 时需要。
+- 基础依赖主要是 `numpy` 和 `matplotlib`。
+- `earth` 会安装 `ppigrf` 和 `pymsis`，用于 IGRF 和 NRLMSIS。
+- `tle` 会安装 `sgp4`，用于 `TLEOrbitProvider`。
 
-## 快速开始
+## 最小示例
 
-最短闭环仿真：
+运行一个默认 PD 闭环姿态控制仿真：
 
 ```python
 from satmodel import ScenarioRunner, SimulationConfig, build_default_system
 
 system = build_default_system(controller="pd", identify_inertia=True)
 config = SimulationConfig(duration=5.0, dt=0.02)
+
 result = ScenarioRunner(system).run(config)
 
 print(result.metrics(config.reference))
 ```
 
-输出指标包括初始误差、末端误差、RMS 姿态误差、力矩积分和峰值力矩。
+输出指标包括：
 
-## 作为库调用
+- 初始姿态误差。
+- 末端姿态误差。
+- RMS 姿态误差。
+- 控制力矩积分。
+- 峰值执行力矩。
 
-推荐的高层 API：
+## 运行示例脚本
 
-```python
-from satmodel import (
-    __version__,
-    ScenarioRunner,
-    SimulationConfig,
-    build_default_system,
-    build_cubesat_reaction_wheel_system,
-)
-```
-
-示例：构造一个 1U CubeSat 反作用轮闭环系统。
-
-```python
-from satmodel import ScenarioRunner, SimulationConfig, build_cubesat_reaction_wheel_system
-
-system = build_cubesat_reaction_wheel_system(controller="pd")
-result = ScenarioRunner(system).run(SimulationConfig(duration=10.0, dt=0.02))
-
-print(result.metrics())
-print(result.wheel_speeds_rad_s.shape)
-print(result.wheel_allocation_error_nm.max())
-```
-
-高级用户可以直接从子模块导入组件：
-
-```python
-from satmodel.environment import CircularOrbitProvider, OrbitalEnvironment
-from satmodel.actuators import ReactionWheelArrayConfig, ReactionWheelStateEffector
-from satmodel.disturbances import GravityGradientTorque, default_leo_disturbance_effectors
-from satmodel.physics import CubeSatPhysicalConfig
-```
-
-内部工具模块以下划线开头，例如 `satmodel._validation`，不作为公共 API 使用。
-
-## 反作用轮 CubeSat 示例
-
-运行四轮金字塔反作用轮 PD 闭环：
-
-```bash
-python examples/cubesat_reaction_wheels_pd.py
-```
-
-运行单轮失效 smoke scenario：
-
-```bash
-python examples/cubesat_wheel_failure.py
-```
-
-反作用轮系统会记录：
-
-- `result.wheel_speeds_rad_s`
-- `result.wheel_torques_nm`
-- `result.wheel_momentum_nms`
-- `result.wheel_momentum_capacity_nms`
-- `result.wheel_allocation_error_nm`
-- `result.wheel_saturation_flags`
-
-当前轮组默认使用 `bounded_pinv` 分配：在分配时考虑单轮力矩上限、当前轮速、本步速度余量和失效轮。冗余轮组还可以使用 `nullspace_momentum` 做内部轮速/动量分布管理。
-
-## 论文式仿真实验复现
-
-库中提供一个可复现的反作用轮阵列研究实验，包含标称四轮、单轮失效、低力矩约束、带初始轮速偏置和 null-space 动量管理对比。
-
-作为 Python API 调用：
-
-```python
-from satmodel.studies import run_reaction_wheel_study
-
-rows = run_reaction_wheel_study(
-    output_dir="results/reaction_wheel_study",
-    duration=20.0,
-    dt=0.02,
-)
-```
-
-作为命令行调用：
-
-```bash
-satmodel-rw-study --output results/reaction_wheel_study --duration 20 --dt 0.02
-```
-
-或直接运行示例脚本：
-
-```bash
-python examples/academic_reaction_wheel_study.py --duration 20 --dt 0.02
-```
-
-默认输出：
-
-- `summary_metrics.csv`：汇总指标表
-- `time_history.csv`：全时域数据
-- `README.md`：方法、结果表和解释
-- `attitude_error.png`
-- `allocation_error.png`
-- `wheel_speed_norm.png`
-
-这些文件默认写入 `results/reaction_wheel_study/`。`results/` 被视为运行产物，默认不纳入源码管理。
-
-## 主要模块说明
-
-| 模块 | 作用 |
-| --- | --- |
-| `satmodel.system` | 高层系统装配、单速率仿真循环 |
-| `satmodel.types` | 状态、测量、环境上下文、结果和 telemetry 数据对象 |
-| `satmodel.dynamics` | 刚体姿态动力学和 RK4 积分 |
-| `satmodel.environment` | 轨道源、地磁/大气后端、环境采样 |
-| `satmodel.disturbances` | 重力梯度、残余磁、气动、SRP 扰动力矩 |
-| `satmodel.actuators` | 理想力矩执行器和反作用轮状态效应器 |
-| `satmodel.physics` | 质量属性、CubeSat 几何和物理配置 |
-| `satmodel.sensors` | 姿态传感器和陀螺简化模型 |
-| `satmodel.estimation` | MEKF 和估计器组合 |
-| `satmodel.identification` | 对角惯量 RLS 和角加速度辅助 |
-| `satmodel.controllers` | PD 和 LADRC 控制器 |
-| `satmodel.optimization` | 参数调优工具 |
-| `satmodel.studies` | 可复现实验与研究脚本的库化入口 |
-
-## 物理建模边界
-
-当前默认模型适合第一版 ADCS 研究和控制验证，不等同任务级高保真仿真器。
-
-已包含：
-
-- 刚体姿态动力学
-- 反作用轮内部轮速状态
-- 轮组力矩/速度饱和
-- 轮组失效降级
-- 简化 LEO 环境
-- 常见一阶扰动力矩预算
-
-暂未包含：
-
-- J2/三体/机动数值轨道传播
-- 柔性附件和多体关节动力学
-- 燃料晃动
-- 面元级气动和 SRP
-- 地球反照、热辐射和半影
-- 反作用轮摩擦、jitter、电机电流环
-- 磁力矩器动量卸载闭环
-
-如果需要任务级精度，应替换默认质量属性、几何、环境后端和执行机构参数，并根据任务需要接入更高保真传播器。
-
-## 示例脚本
+进入项目根目录后，可以直接运行：
 
 ```bash
 python examples/open_loop.py
@@ -268,10 +124,147 @@ python examples/mekf_rls_identification.py
 python examples/tune_pd.py
 python examples/cubesat_reaction_wheels_pd.py
 python examples/cubesat_wheel_failure.py
-python examples/academic_reaction_wheel_study.py --duration 2 --dt 0.05 --no-plots
 ```
 
-部分闭环和辨识示例支持 `--plot`。
+部分示例支持绘图：
+
+```bash
+python examples/pd_closed_loop.py --plot
+python examples/cubesat_reaction_wheels_pd.py --plot
+```
+
+示例作用：
+
+| 脚本 | 作用 |
+| --- | --- |
+| `examples/open_loop.py` | 开环刚体传播，不启用控制器。 |
+| `examples/pd_closed_loop.py` | PD 姿态稳定闭环，最适合入门。 |
+| `examples/ladrc_closed_loop.py` | LADRC 姿态控制和扰动诊断。 |
+| `examples/mekf_rls_identification.py` | MEKF 姿态估计和 RLS 惯量辨识。 |
+| `examples/tune_pd.py` | 使用 PSO 优化 PD 控制器参数。 |
+| `examples/cubesat_reaction_wheels_pd.py` | 1U CubeSat 四反作用轮 PD 闭环。 |
+| `examples/cubesat_wheel_failure.py` | 禁用一个反作用轮后的失效降级场景。 |
+| `examples/academic_reaction_wheel_study.py` | 反作用轮阵列论文式批量实验。 |
+
+## 反作用轮仿真
+
+CubeSat 反作用轮系统可以这样调用：
+
+```python
+from satmodel import ScenarioRunner, SimulationConfig, build_cubesat_reaction_wheel_system
+
+system = build_cubesat_reaction_wheel_system(controller="pd")
+config = SimulationConfig(duration=6.0, dt=0.02)
+
+result = ScenarioRunner(system).run(config)
+
+print(result.metrics(config.reference))
+print(result.wheel_speeds_rad_s.shape)
+print(result.wheel_allocation_error_nm.max())
+```
+
+反作用轮不是简单的力矩限幅器。它在项目中作为带内部状态的 `ReactionWheelStateEffector` 接入动力学：
+
+```text
+控制器三轴力矩命令
+    -> 轮组分配器
+    -> 单轮力矩/速度限幅
+    -> 本体反作用力矩
+    -> 姿态、角速度和轮速一起积分
+```
+
+仿真结果会记录：
+
+- `result.wheel_speeds_rad_s`
+- `result.wheel_torques_nm`
+- `result.wheel_torque_commands_nm`
+- `result.wheel_momentum_nms`
+- `result.wheel_momentum_capacity_nms`
+- `result.wheel_allocation_error_nm`
+- `result.wheel_saturation_flags`
+
+单轮失效示例：
+
+```python
+system = build_cubesat_reaction_wheel_system(controller="pd")
+system.actuator.disable_wheel(0)
+```
+
+## 可选高保真环境
+
+安装 `earth` 和 `tle` 可选依赖后，可以使用 TLE/SGP4、IGRF 和 NRLMSIS：
+
+```python
+from datetime import datetime, timezone
+
+from satmodel import (
+    EnvironmentConfig,
+    IGRFMagneticField,
+    NRLMSISAtmosphere,
+    OrbitalEnvironment,
+    SpaceWeatherInputs,
+    TLEOrbitProvider,
+)
+
+line1 = "1 25544U 98067A   26142.51965852  .00007327  00000+0  13945-3 0  9999"
+line2 = "2 25544  51.6330  67.1668 0007537  86.3178 273.8672 15.49313075567774"
+
+environment = OrbitalEnvironment(
+    EnvironmentConfig(datetime(2026, 5, 22, 12, 28, 18, tzinfo=timezone.utc)),
+    TLEOrbitProvider(line1, line2),
+    IGRFMagneticField(),
+    NRLMSISAtmosphere(activity=SpaceWeatherInputs(f107=150.0, f107a=150.0, ap=4.0)),
+)
+```
+
+注意：示例中的 TLE 和空间天气参数只是演示输入。正式分析时应使用目标任务对应的 TLE、epoch 和空间天气数据。
+
+## 反作用轮研究实验
+
+项目提供一个可复现的反作用轮阵列对比实验，包含标称四轮、单轮失效、低力矩约束、初始轮速偏置和 null-space 动量管理对比。
+
+命令行运行：
+
+```bash
+satmodel-rw-study --output results/reaction_wheel_study --duration 20 --dt 0.02
+```
+
+或直接运行示例：
+
+```bash
+python examples/academic_reaction_wheel_study.py --duration 20 --dt 0.02
+```
+
+默认输出到 `results/reaction_wheel_study/`：
+
+- `summary_metrics.csv`
+- `time_history.csv`
+- `README.md`
+- `attitude_error.png`
+- `allocation_error.png`
+- `wheel_speed_norm.png`
+
+## 代码结构
+
+```text
+src/satmodel/
+  system.py          高层系统装配和单速率仿真循环
+  types.py           状态、测量、环境、遥测和结果数据对象
+  dynamics.py        刚体姿态动力学和 RK4 积分
+  environment.py     轨道、地磁、大气和环境采样
+  disturbances.py    重力梯度、残余磁、气动和太阳光压扰动
+  actuators.py       理想力矩执行器和反作用轮状态效应器
+  physics.py         质量属性、CubeSat 几何和物理配置
+  sensors.py         姿态传感器和陀螺模型
+  estimation.py      MEKF 和估计器组合
+  identification.py  对角惯量 RLS 和角加速度辅助
+  controllers.py     PD 和 LADRC 控制器
+  optimization.py    参数调优工具
+  plotting.py        绘图辅助
+  studies/           可复现实验入口
+```
+
+更详细的新手说明见 [docs/NEWCOMER_GUIDE.md](docs/NEWCOMER_GUIDE.md)。
 
 ## 测试与开发
 
@@ -293,14 +286,39 @@ python -m build
 twine check dist/*
 ```
 
-命令行实验 smoke test：
+命令行 smoke test：
 
 ```bash
 satmodel-rw-study --output results/smoke --duration 2 --dt 0.05 --no-plots
 ```
 
-## 文档索引
+## 物理建模边界
 
+当前默认模型适合第一版 ADCS 研究和控制验证，不等同任务级高保真仿真器。
+
+已包含：
+
+- 刚体姿态动力学。
+- 反作用轮内部轮速状态。
+- 轮组力矩/速度饱和。
+- 轮组失效降级。
+- 简化 LEO 环境。
+- 常见一阶扰动力矩预算。
+
+暂未包含：
+
+- J2、三体、机动和高保真数值轨道传播。
+- 柔性附件、多体关节和燃料晃动。
+- 面元级气动和太阳光压。
+- 地球反照、热辐射和半影。
+- 反作用轮摩擦、jitter、电机电流环。
+- 磁力矩器动量卸载闭环。
+
+如果需要任务级精度，应替换默认质量属性、几何、环境后端和执行机构参数，并根据任务需要接入更高保真传播器。
+
+## 文档
+
+- [新手导览](docs/NEWCOMER_GUIDE.md)
 - [项目总说明与物理建模](docs/PROJECT_GUIDE.md)
 - [架构说明](docs/ARCHITECTURE.md)
 - [路线图](docs/ROADMAP.md)
@@ -310,3 +328,7 @@ satmodel-rw-study --output results/smoke --duration 2 --dt 0.05 --no-plots
 - [环境与扰动模型](docs/physics/03_disturbance_environment_model.md)
 - [反作用轮模型](docs/physics/04_reaction_wheel_model.md)
 - [来源与参数追溯](docs/physics/05_sources_and_parameter_traceability.md)
+
+## License
+
+MIT
